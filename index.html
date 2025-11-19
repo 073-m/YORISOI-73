@@ -26,35 +26,38 @@
 
     <script>
         // ★★★ VR移動システム ★★★
-        AFRAME.registerComponent('quest-movement-system', {
+        AFRAME.registerComponent('smooth-locomotion', {
             schema: { speed: {default: 0.05} },
             init: function () {
                 this.stickX = 0;
                 this.stickY = 0;
-                this.camera = document.querySelector('a-entity[camera]');
-                // 左手コントローラーを見つける
-                const leftHand = document.querySelector('#left-hand');
-                if (leftHand) {
-                    leftHand.addEventListener('axismove', (evt) => {
-                        if (evt.detail.axis && evt.detail.axis.length > 3) {
-                            this.stickX = evt.detail.axis[2];
-                            this.stickY = evt.detail.axis[3];
-                        }
-                    });
-                }
+                this.rig = document.getElementById('rig'); // 自分全体
+                this.camera = document.querySelector('[camera]'); // 頭の向き
+
+                // スティックが動いた時
+                this.el.addEventListener('thumbstickmoved', (evt) => {
+                    this.stickX = evt.detail.x;
+                    this.stickY = evt.detail.y;
+                });
+
+                // スティックを離した時
+                this.el.addEventListener('thumbstickend', () => {
+                    this.stickX = 0;
+                    this.stickY = 0;
+                });
             },
+
             tick: function () {
                 if (Math.abs(this.stickX) < 0.1 && Math.abs(this.stickY) < 0.1) return;
-                const rotation = this.camera.getAttribute('rotation');
-                const angle = rotation.y * (Math.PI / 180);
-                const x = this.stickX * Math.cos(angle) + this.stickY * Math.sin(angle);
-                const z = -this.stickX * Math.sin(angle) + this.stickY * Math.cos(angle);
-                const pos = this.el.getAttribute('position');
-                this.el.setAttribute('position', {
-                    x: pos.x + x * this.data.speed,
-                    y: pos.y,
-                    z: pos.z + z * this.data.speed
-                });
+
+                // カメラの向きに合わせて移動方向を計算
+                const rotation = this.camera.object3D.rotation.y;
+                const dx = this.stickX * Math.cos(rotation) + this.stickY * Math.sin(rotation);
+                const dz = -this.stickX * Math.sin(rotation) + this.stickY * Math.cos(rotation);
+
+                // リグを移動させる
+                this.rig.object3D.position.x += dx * this.data.speed;
+                this.rig.object3D.position.z += dz * this.data.speed;
             }
         });
 
@@ -330,7 +333,7 @@
 
 
     <!-- ★★★ PCでのクリックをマウスカーソルに変更 ★★★ -->
-    <a-scene audio-control user-video-control color-switch cursor="rayOrigin: mouse" raycaster="objects: .clickable">
+    <a-scene audio-control user-video-control cursor="rayOrigin: mouse" raycaster="objects: .clickable">
     
         <!--★★★　動画のループ・雨音音声のループ　★★★-->
         <a-assets>
@@ -339,7 +342,7 @@
         </a-assets>
 
         <!-- ★★★ Meta Quest 3S 対応 カメラリグ ★★★ -->
-        <a-entity id="rig" movement-controls="speed: 0.1" position="0.0 0.0 -2.0">
+        <a-entity id="rig" position="0.0 0.0 -2.0">
             
             <!-- 頭（カメラ） -->
             <a-entity camera position="0 1.6 0" look-controls="pointerLockEnabled: false">
@@ -356,6 +359,7 @@
             <a-entity
                 id="left-hand"  
                 oculus-touch-controls="hand: left" 
+                smooth-locomotion="speed: 0.05"
                 laser-controls="hand: left" 
                 raycaster="objects: .clickable; far: 5"
                 model="true">

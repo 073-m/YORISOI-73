@@ -2,11 +2,10 @@
 <html>
 <head>
 
-    <title>YORISOI72</title>
+    <title>YORISOI73</title>
     <meta charset="utf-8">
-    <script src="https://aframe.io/releases/1.7.0/aframe.min.js"></script>
+    <script src="https://aframe.io/releases/1.5.0/aframe.min.js"></script>
     <script src="https://unpkg.com/aframe-particle-system-component@1.0.x/dist/aframe-particle-system-component.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/gh/c-frame/aframe-extras@7.2.0/dist/aframe-extras.min.js"></script>
     
 
     <!--★★★　左上UI　★★★-->
@@ -20,20 +19,50 @@
             border-radius: 10px;
             font-family: sans-serif;
         }
-        input[type="file"] {
-            width: 220px; padding: 2px;
-        }
-        button {
-            padding: 6px 8px; margin: 1px;
-        }
+        input[type="file"] { width: 220px; padding: 2px; }
+        button { padding: 6px 8px; margin: 1px; }
     </style>
 
 
-
     <script>
+        // ★★★ VR移動システム ★★★
+        AFRAME.registerComponent('quest-movement-system', {
+            schema: { speed: {default: 0.05} },
+            init: function () {
+                this.stickX = 0;
+                this.stickY = 0;
+                this.camera = document.querySelector('a-entity[camera]');
+                // 左手コントローラーを見つける
+                const leftHand = document.querySelector('#left-hand');
+                if (leftHand) {
+                    leftHand.addEventListener('axismove', (evt) => {
+                        if (evt.detail.axis && evt.detail.axis.length > 3) {
+                            this.stickX = evt.detail.axis[2];
+                            this.stickY = evt.detail.axis[3];
+                        }
+                    });
+                }
+            },
+            tick: function () {
+                if (Math.abs(this.stickX) < 0.1 && Math.abs(this.stickY) < 0.1) return;
+                const rotation = this.camera.getAttribute('rotation');
+                const angle = rotation.y * (Math.PI / 180);
+                const x = this.stickX * Math.cos(angle) + this.stickY * Math.sin(angle);
+                const z = -this.stickX * Math.sin(angle) + this.stickY * Math.cos(angle);
+                const pos = this.el.getAttribute('position');
+                this.el.setAttribute('position', {
+                    x: pos.x + x * this.data.speed,
+                    y: pos.y,
+                    z: pos.z + z * this.data.speed
+                });
+            }
+        });
+
+
         //　★★★　星空　★★★
         AFRAME.registerComponent('starry-sky', {
-            schema: {
+            schema:
+            {
                 count: {type: 'number', default: 700},
                 radius: {type: 'number', default: 90}
             },
@@ -58,9 +87,11 @@
             }
         });
         
+
         //　★★★　雨　★★★
         AFRAME.registerComponent('rain', {
-            schema: {
+            schema:
+            {
                 count: {type: 'number', default: 500},
                 area: {type: 'number', default: 30},
                 roomDepth: {type: 'number', default: 6.5}
@@ -93,6 +124,7 @@
             }
         });
 
+
         //　★★★　時計　★★★
         AFRAME.registerComponent('clock', {
             init: function () {
@@ -102,37 +134,29 @@
             tick: function () {
                 const el = this.el;
                 const now = new Date();
-                const jst_time = now.toLocaleString("ja-JP", {
-                    timeZone: "Asia/Tokyo",
-                    hour: '2-digit', minute: '2-digit', second: '2-digit'
-                });
-                const jst_date = now.toLocaleString("ja-JP",{
-                    timeZone: "Asia/Tokyo",
-                    year: 'numeric', month: '2-digit', day: '2-digit'
-                });
-                const jst_weekday = now.toLocaleString("en-US",{
-                    timeZone: "Asia/Tokyo", weekday: 'long'
-                });
-                const display_text = jst_time + '\n' + jst_date + ' ' + jst_weekday
-                el.setAttribute('value', display_text);
+                const jst_time = now.toLocaleString("ja-JP",
+                { timeZone: "Asia/Tokyo", hour: '2-digit', minute: '2-digit', second: '2-digit' });
+                const jst_date = now.toLocaleString("ja-JP",
+                { timeZone: "Asia/Tokyo", year: 'numeric', month: '2-digit', day: '2-digit' });
+                const jst_weekday = now.toLocaleString("en-US",
+                { timeZone: "Asia/Tokyo", weekday: 'long' });
+                el.setAttribute('value', jst_time + '\n' + jst_date + ' ' + jst_weekday);
 
                 const hour = now.getHours();
                 let skyColor = "#212133";
                 let starsVisible = true;
 
-                if (hour >= 6 && hour < 10) {
-                    skyColor = "#87CEEB"; starsVisible = false;
-                } else if (hour >= 10 && hour < 16) {
-                    skyColor = "#4682B4"; starsVisible = false;
-                } else if (hour >= 16 && hour < 19) {
-                    skyColor = "#FF7F50"; starsVisible = false;
-                } else {
-                    skyColor = "#212133"; starsVisible = true;
-                }
+                if (hour >= 6 && hour < 10)
+                { skyColor = "#87CEEB"; starsVisible = false; }
+                else if (hour >= 10 && hour < 16)
+                { skyColor = "#4682B4"; starsVisible = false; }
+                else if (hour >= 16 && hour < 19)
+                { skyColor = "#FF7F50"; starsVisible = false; }
                 if (this.skyEl) this.skyEl.setAttribute('color', skyColor);
                 if (this.starsEl) this.starsEl.setAttribute('visible', starsVisible);
             }
         });
+
 
         //　★★★　雨音制御　★★★
         AFRAME.registerComponent('audio-control', {
@@ -144,6 +168,7 @@
                 }
             }
         });
+
 
         //　★★★　ライトスイッチ　★★★
         AFRAME.registerComponent('light-switch', {
@@ -164,6 +189,7 @@
             }
         });
 
+
         //　★★★　雨音スイッチ　★★★
         AFRAME.registerComponent('rain-switch', {
             init: function () {
@@ -173,10 +199,13 @@
                 let isPlaying = true;
                 if (audioEl && visualEl) {
                     switchEl.addEventListener('click', function () {
-                        if (isPlaying) {
+                        if (isPlaying)
+                        {
                             audioEl.pause();
                             visualEl.setAttribute('visible', false);
-                        } else {
+                        }
+                        else
+                        {
                             audioEl.play();
                             visualEl.setAttribute('visible', true);
                         }
@@ -185,6 +214,7 @@
                 }
             }
         });
+
 
         //　★★★　動画再生　★★★
         AFRAME.registerComponent('user-video-control', {
@@ -210,18 +240,18 @@
             }
         });
 
+        
         //　★★★　クリックでテレポート ★★★
         AFRAME.registerComponent('teleport-on-click', {
             schema: { targetPos: {type: 'vec3', default: {x: 0, y: 1, z: 0}} },
             init: function () {
                 const rig = document.getElementById('rig');
                 this.el.addEventListener('click', () => {
-                    if (rig) {
-                        rig.setAttribute('position', this.data.targetPos);
-                    }
+                    if (rig) rig.setAttribute('position', this.data.targetPos);
                 });
             }
         });
+
 
         // ★★　カラー変更スイッチ機能
         AFRAME.registerComponent('color-switch', {
@@ -252,12 +282,14 @@
                 this.elements.furnitureA.forEach(el => el.setAttribute('color', theme.furnitureA));
                 this.elements.furnitureB.forEach(el => el.setAttribute('color', theme.furnitureB));
                 if (this.elements.desk) {
-                    this.elements.desk.setAttribute('material', {
+                    this.elements.desk.setAttribute('material',
+                    {
                         color: theme.desk, opacity: 0.8, transparent: true
                     });
                 }
             }
         });
+
 
         // ★★★ 光る観葉植物 ★★★
         AFRAME.registerComponent('plant-light-switch', {
@@ -284,6 +316,8 @@
     </script>
 </head>
 
+
+
 <body>
 
     <!--★★★　動画再生ボックスUI　★★★-->
@@ -294,7 +328,9 @@
         <button id="video-stop-button"> ⏸️停止 </button>
     </div>
 
-    <a-scene audio-control user-video-control color-switch>
+
+    <!-- ★★★ PCでのクリックをマウスカーソルに変更 ★★★ -->
+    <a-scene audio-control user-video-control color-switch cursor="rayOrigin: mouse" raycaster="objects: .clickable">
     
         <!--★★★　動画のループ・雨音音声のループ　★★★-->
         <a-assets>
@@ -303,37 +339,34 @@
         </a-assets>
 
         <!-- ★★★ Meta Quest 3S 対応 カメラリグ ★★★ -->
-        <!-- movement-controls: 左スティックで歩行移動 || position: 開始位置 -->
         <a-entity id="rig" movement-controls="speed: 0.1" position="0.0 0.0 -2.0">
             
             <!-- 頭（カメラ） -->
-            <!-- look-controls: 頭の動きで視点移動 -->
-            <a-entity camera 
-                      position="0 1.6 0" 
-                      look-controls="pointerLockEnabled: false">
+            <a-entity camera position="0 1.6 0" look-controls="pointerLockEnabled: false">
                 
-                <!-- 視線カーソル -->
                 <a-entity
-                    cursor="fuse: false; raycaster: objects: .clickable; far: 4.0;"
                     position="0 0 -1"
                     geometry="primitive: ring; radiusInner: 0.01; radiusOuter: 0.015"
-                    material="color: #999999; shader: flat; opacity: 0.5"
-                    visible="false">
+                    material="color: #999999; shader: flat; opacity: 0.5" >
                 </a-entity>
+
             </a-entity>
 
             <!-- 左手コントローラー -->
-            <a-entity oculus-touch-controls="hand: left" 
-                      laser-controls="hand: left" 
-                      raycaster="objects: .clickable; far: 5"
-                      model="true">
+            <a-entity
+                id="left-hand"  
+                oculus-touch-controls="hand: left" 
+                laser-controls="hand: left" 
+                raycaster="objects: .clickable; far: 5"
+                model="true">
             </a-entity>
 
             <!-- 右手コントローラー -->
-            <a-entity oculus-touch-controls="hand: right" 
-                      laser-controls="hand: right" 
-                      raycaster="objects: .clickable; far: 5"
-                      model="true">
+            <a-entity
+                oculus-touch-controls="hand: right" 
+                laser-controls="hand: right" 
+                raycaster="objects: .clickable; far: 5"
+                model="true">
             </a-entity>
 
         </a-entity>
@@ -342,11 +375,9 @@
         <!--★★★　部屋全体の明かり　★★★-->
         <a-light id="room-light" type="ambient" color="#fff" intensity="0.5"></a-light>
 
-        <!--★★★　空　★★★-->
+        <!--★★★　空・星・雨　★★★-->
         <a-sky id="sky-element" color="#212133" material="shader: flat;"></a-sky>
-        <!--★★★　星の数・半径　★★★-->
         <a-entity id="stars-element" starry-sky="count: 700; radius: 90;"></a-entity>
-        <!--★★★　雨の量・エリア範囲　★★★-->
         <a-entity id="rain-visual" rain="count: 500; area: 20; roomDepth: 6.5;"></a-entity>
 
         <!--★★★　床　★★★-->
@@ -364,29 +395,37 @@
 
 
         <!--★★★　ベッド　★★★-->
-        <a-box id="bed" position="-1.8 0.2 -1.5" width="2" height="0.5" depth="2.8" color="#98605e"
-               class="clickable themable-furnitureA" 
-               teleport-on-click="targetPos: -1.8 0.0 -1.5">
+        <a-box
+            id="bed" position="-1.8 0.2 -1.5"
+            width="2" height="0.5" depth="2.8" color="#98605e"
+            class="clickable themable-furnitureA" 
+            teleport-on-click="targetPos: -1.8 0.0 -1.5">
         </a-box>
 
         <!--★★★　枕　★★★-->
-        <a-box id="makura" position="-1.8 0.5 -2.5" width="1.5" height="0.3" depth="0.5" color="#c0c0c0"
-               class="themable-furnitureB">
+        <a-box
+            id="makura" position="-1.8 0.5 -2.5"
+            width="1.5" height="0.3" depth="0.5" color="#c0c0c0"
+            class="themable-furnitureB">
         </a-box>
     
         <!--★★★　時計　★★★-->
         <a-text id="clock-text" value="00:00:00" position="0.6 0.4 -5.85" width="4.0" color="#7a9990" clock></a-text>
 
         <!--★★★　机　★★★-->
-        <a-box id="table" position="0.0 0.0 -4.5" width="3.0" height="1.0" depth="1"
-               material="opacity: 0.8; transparent: true;"
-               class="themable-desk">
+        <a-box
+            id="table" position="0.0 0.0 -4.5"
+            width="3.0" height="1.0" depth="1"
+            material="opacity: 0.8; transparent: true;"
+            class="themable-desk">
         </a-box>
 
         <!--★★★　椅子的なもの　★★★-->
-        <a-box id="chair" position="0 0.1 -4.0" width="2.0" height="0.5" depth="0.05" color="#5b7e91" rotation="-90 0 0"
-               class="clickable themable-furnitureB" 
-               teleport-on-click="targetPos: 0.0 0.0 -3.9">
+        <a-box
+            id="chair" position="0 0.1 -4.0"
+            width="2.0" height="0.5" depth="0.05" color="#5b7e91" rotation="-90 0 0"
+            class="clickable themable-furnitureB" 
+            teleport-on-click="targetPos: 0.0 0.0 -3.9">
         </a-box>
 
 
@@ -396,16 +435,24 @@
 
         <!--★★ 光る観葉植物 ★★★ -->
         <a-entity position="2.5 0 -0.7">
+
             <!-- 植木鉢 -->
             <a-cylinder radius="0.3" height="1" color="#856859"></a-cylinder>
+
             <!-- 植物 -->
-            <a-sphere id="glowing-plant-sphere" position="0 0.9 0" radius="0.3" color="#769164" 
-                      material="emissive: #769164; emissiveIntensity: 0.2"
-                      class="clickable" plant-light-switch>
+            <a-sphere
+                id="glowing-plant-sphere" position="0 0.9 0"
+                radius="0.3" color="#769164" 
+                material="emissive: #769164; emissiveIntensity: 0.2"
+                class="clickable" plant-light-switch>
+
                 <!--植物の中の光源-->
                 <a-light id="plant-light-source" type="point" color="#a3d6cc" intensity="0" position="0 0.9 0"></a-light>
+
             </a-sphere>
+
         </a-entity>
+
 
         <!--★★★　雨音スイッチ　★★★-->
         <a-box id="rain-switch" position="2.5 1.1 -5.9" width="0.1" height="0.15" depth="0.08" color="#84a2d4" rain-switch class="clickable"></a-box>
@@ -417,13 +464,16 @@
 
 
         <!--★★★　動画再生画面　★★★-->
-        <a-plane id="videoScreen" geometry="primitive: plane; height: 2.2; width: 3.7" position="0 1.7 -5.9"
-                 material="src: #user-video-texture; side: double;">
+        <a-plane
+            id="videoScreen"
+            geometry="primitive: plane; height: 2.2; width: 3.7" position="0 1.7 -5.9"
+            material="src: #user-video-texture; side: double;">
         </a-plane>
 
 
         <!--★★★　木　★★★-->
         <a-entity id="forest-area">
+
             <!-- 奥の木 -->
             <a-entity position="0 0 -10">
                 <a-entity position="-8 0 0" scale="1.5 1.5 1.5"> <a-cylinder color="#5D4037" radius="0.2" height="3"></a-cylinder> <a-cone color="#2f5d50" radius-bottom="1" height="4" position="0 3 0"></a-cone> </a-entity>
@@ -432,23 +482,27 @@
                 <a-entity position="5 0 -1" scale="1.2 1.2 1.2"> <a-cylinder color="#5D4037" radius="0.2" height="2.5"></a-cylinder> <a-cone color="#3b7960" radius-bottom="1" height="3.5" position="0 2.5 0"></a-cone> </a-entity>
                 <a-entity position="9 0 0" scale="1.5 1.5 1.5"> <a-cylinder color="#5D4037" radius="0.2" height="3"></a-cylinder> <a-cone color="#2f5d50" radius-bottom="1" height="4" position="0 3 0"></a-cone> </a-entity>
             </a-entity>
+
             <!-- 左の木 -->
             <a-entity position="-10 0 0" rotation="0 90 0">
                 <a-entity position="-5 0 0" scale="1.5 1.5 1.5"> <a-cylinder color="#5D4037" radius="0.2" height="3"></a-cylinder> <a-cone color="#2f5d50" radius-bottom="1" height="4" position="0 3 0"></a-cone> </a-entity>
                 <a-entity position="0 0 1" scale="1.8 1.8 1.8"> <a-cylinder color="#5D4037" radius="0.2" height="4"></a-cylinder> <a-cone color="#2f5d50" radius-bottom="1.2" height="5" position="0 4 0"></a-cone> </a-entity>
                 <a-entity position="4 0 -1" scale="1.2 1.2 1.2"> <a-cylinder color="#5D4037" radius="0.2" height="2.5"></a-cylinder> <a-cone color="#3b7960" radius-bottom="1" height="3.5" position="0 2.5 0"></a-cone> </a-entity>
             </a-entity>
+
             <!-- 右の木 -->
             <a-entity position="10 0 0" rotation="0 -90 0">
                 <a-entity position="-6 0 0" scale="1.5 1.5 1.5"> <a-cylinder color="#5D4037" radius="0.2" height="3"></a-cylinder> <a-cone color="#2f5d50" radius-bottom="1" height="4" position="0 3 0"></a-cone> </a-entity>
                 <a-entity position="-1 0 1" scale="1.8 1.8 1.8"> <a-cylinder color="#5D4037" radius="0.2" height="4"></a-cylinder> <a-cone color="#2f5d50" radius-bottom="1.2" height="5" position="0 4 0"></a-cone> </a-entity>
                 <a-entity position="3 0 -1" scale="1.2 1.2 1.2"> <a-cylinder color="#5D4037" radius="0.2" height="2.5"></a-cylinder> <a-cone color="#3b7960" radius-bottom="1" height="3.5" position="0 2.5 0"></a-cone> </a-entity>
             </a-entity>
+
         </a-entity>
 
 
         <!--★★★　地面　★★★-->
         <a-plane position="0 -0.05 0" rotation="-90 0 0" width="20" height="20" color="#384e36"></a-plane>
+        
     </a-scene>
 
 </body>

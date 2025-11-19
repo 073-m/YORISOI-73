@@ -2,14 +2,16 @@
 <html>
 <head>
 
-    <title>YORISOI71 - Quest 3S Edition</title>
+    <title>YORISOI73</title>
     <meta charset="utf-8">
     <script src="https://aframe.io/releases/1.7.0/aframe.min.js"></script>
     <script src="https://unpkg.com/aframe-particle-system-component@1.0.x/dist/aframe-particle-system-component.min.js"></script>
     
 
 
+    <!--★★★　左上UI　★★★-->
     <style>
+
         body { margin: 0; overflow: hidden; }
         #ui {
             position: absolute; top: 15px; left: 15px;
@@ -19,12 +21,11 @@
             border-radius: 10px;
             font-family: sans-serif;
         }
-        input[type="file"] {
-            width: 220px; padding: 2px;
-        }
-        button {
-            padding: 6px 8px; margin: 1px;
-        }
+        input[type="file"]
+        { width: 220px; padding: 2px; }
+        button
+        { padding: 6px 8px; margin: 1px; } 
+
     </style>
 
 
@@ -36,7 +37,8 @@
                 count: {type: 'number', default: 700},
                 radius: {type: 'number', default: 90}
             },
-            init: function () {
+
+            init: function (){
                 const el = this.el;
                 const data = this.data;
                 for (let i = 0; i < data.count; i++) {
@@ -69,6 +71,7 @@
                 area: {type: 'number', default: 30},
                 roomDepth: {type: 'number', default: 6.5}
             },
+
             init: function () {
                 const el = this.el;
                 const data = this.data;
@@ -81,7 +84,7 @@
                 
                     let x, y, z;
                 
-                    do {   
+                    do {
                         x = Math.random() * data.area - data.area / 2;
                         z = Math.random() * data.area - data.area / 2;
                     } while (x > -3 && x < 3 && z > -3 - data.roomDepth / 2 && z < -3 + data.roomDepth / 2);
@@ -122,6 +125,7 @@
                     minute: '2-digit',
                     second: '2-digit'
                 });
+
                 // 日付
                 const jst_date = now.toLocaleString("ja-JP",{
                     timeZone: "Asia/Tokyo",
@@ -129,6 +133,7 @@
                     month: '2-digit',
                     day: '2-digit'
                 });
+
                 // 曜日
                 const jst_weekday = now.toLocaleString("en-US",{
                     timeZone: "Asia/Tokyo",
@@ -138,37 +143,38 @@
                 const display_text = jst_time + '\n' + jst_date + ' ' + jst_weekday
                 el.setAttribute('value', display_text);
 
-
                 // 空の色制御
                 const hour = now.getHours();            // 時間の情報取得
-                let skyColor = "#212133";               // デフォルト（夜）
+                let skyColor = "#212133";               // デフォルト
                 let starsVisible = true;
 
                 if (hour >= 6 && hour < 10) {           // 朝 (6時〜9時台)
                     skyColor = "#87CEEB";               // 明るい空色
                     starsVisible = false;
-
-                } else if (hour >= 10 && hour < 16) {   // 昼 (10時〜15時台)
+                }
+                
+                else if (hour >= 10 && hour < 16) {   // 昼 (10時〜15時台)
                     skyColor = "#4682B4";　　　         // 濃い空色
                     starsVisible = false;
-
-                } else if (hour >= 16 && hour < 19) {　　// 夕方 (16時〜18時台)
+                }
+                
+                else if (hour >= 16 && hour < 19) {　　// 夕方 (16時〜18時台)
                     skyColor = "#FF7F50";                // 夕焼け色
                     starsVisible = true;
-
-                } else {                                // 夜 (19時〜翌5時台)
+                }
+                
+                else {                                // 夜 (19時〜翌5時台)
                     skyColor = "#212133";                // デフォルトの夜の色
                     starsVisible = true;
                 }
 
-                // 取得した空と星に、計算した色と表示状態を適用させる
+                // 取得した空と星に、色と表示状態を適用させる
                 if (this.skyEl) {
                     this.skyEl.setAttribute('color', skyColor);
                 }
                 if (this.starsEl) {
                     this.starsEl.setAttribute('visible', starsVisible);
                 }
-
             }
         });
 
@@ -197,7 +203,8 @@
                     switchEl.addEventListener('click', function () {
                         if (lightIsOn) {
                             lightEl.setAttribute('light', 'intensity', 0.09); // OFF
-                        } else {
+                        }
+                        else {
                             lightEl.setAttribute('light', 'intensity', 0.5); // ON (元の明るさ)
                         }
                         lightIsOn = !lightIsOn;
@@ -221,7 +228,8 @@
                         // 雨を止める処理
                         audioEl.pause();
                         visualEl.setAttribute('visible', false);　// 雨非表示
-                    } else {
+                    }
+                    else {
                         // 雨再生する処理
                         audioEl.play();
                         visualEl.setAttribute('visible', true);
@@ -263,17 +271,17 @@
 
 
 
-        //　★★★　クリックで椅子とベッドにテレポート　★★★
-        // (注意: カメラリグを使う方式に変更したため、cameraRigのIDを指定して移動させます)
+        //　★★★　椅子とベッドにテレポート　★★★
         AFRAME.registerComponent('teleport-on-click', {
             schema: {
+                // 'targetPos' という名前で、移動先の座標を受け取る
                 targetPos: {type: 'vec3', default: {x: 0, y: 0, z: 0}}
             },
             init: function () {
                 const cameraRig = document.getElementById('cameraRig');
                 
                 this.el.addEventListener('click', () => {
-                    // 瞬時に移動（アニメーション付きにしたい場合はここを変更）
+                    // 瞬時に移動
                     cameraRig.setAttribute('position', this.data.targetPos);
                 });
             }
@@ -281,24 +289,21 @@
 
 
 
-        //　★★★　【NEW】地面クリックで移動する機能　★★★
+        //　★★★　移動する　★★★
         AFRAME.registerComponent('click-to-move', {
             init: function () {
-                const el = this.el; // このコンポーネントがついた地面
-                const cameraRig = document.getElementById('cameraRig'); // 移動させる対象
+                const el = this.el;
+                const cameraRig = document.getElementById('cameraRig');
 
                 el.addEventListener('click', (evt) => {
-                    // クリック（レーザーが当たった）座標を取得
                     const intersection = evt.detail.intersection.point;
 
-                    // 移動先の設定 (Y軸は0にして床にめり込まないようにする)
                     const targetPosition = {
                         x: intersection.x,
                         y: 0,
                         z: intersection.z
                     };
 
-                    // アニメーションで滑らかに移動させる (duration: 1000ms = 1秒)
                     cameraRig.setAttribute('animation', {
                         property: 'position',
                         to: `${targetPosition.x} ${targetPosition.y} ${targetPosition.z}`,
@@ -313,7 +318,7 @@
 
         // ★★　カラー変更スイッチ機能
         AFRAME.registerComponent('color-switch', {
-            // 3つの色のテーマを定義
+            // 3つの色のテーマ
             themes: [
                 { floor: '#2f5d50', wall: '#3b7960', furnitureA: '#98605e', furnitureB: '#c0c0c0' }, // (緑)
                 { floor: '#6b4f34', wall: '#8b6b49', furnitureA: '#b08a5b', furnitureB: '#f0e68c' }, // (橙)
@@ -330,10 +335,10 @@
                     desk: document.querySelector('.themable-desk')
                 };
 
-                // 最初のテーマ（デフォルト）を適用する
+                // デフォルトを適用
                 this.applyTheme();
 
-                // スイッチがクリックされた時の処理
+                // スイッチがクリックされた時
                 this.el.addEventListener('click', () => {
                     // 次のテーマ番号に進める
                     this.currentTheme = (this.currentTheme + 1) % this.themes.length;
@@ -350,7 +355,7 @@
                 this.elements.furnitureA.forEach(el => el.setAttribute('color', theme.furnitureA));
                 this.elements.furnitureB.forEach(el => el.setAttribute('color', theme.furnitureB));
 
-                // 机は色と透明度を両方設定する
+                // 机(特別)
                 if (this.elements.desk) {
                     this.elements.desk.setAttribute('material', {
                         color: theme.desk,
@@ -374,7 +379,8 @@
                     if (isPlantOn) {
                         lightSource.setAttribute('light', 'intensity', 0);
                         plantSphere.setAttribute('material', 'emissiveIntensity', 0.2);
-                    } else {
+                    }
+                    else {
                         lightSource.setAttribute('light', 'intensity', 1.5);
                         plantSphere.setAttribute('material', 'emissiveIntensity', 1.0);
                     }
@@ -407,7 +413,7 @@
         </a-assets>
 
 
-        <a-entity id="cameraRig" position="0 0 -2.0">
+        <a-entity id="cameraRig" position="0 0 -2.0" wasd-controls="acceleration: 10">
             
             <a-entity id="head" camera look-controls position="0 1.6 0"></a-entity>
 
